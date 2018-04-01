@@ -100,7 +100,13 @@ class Env():
         if not self.game_over():
             return 0
         
-        return 1 if self.winner == sym else 0
+        if self.winner == sym:
+            r=1
+        elif self.winner == None:
+            r=0.5
+        else:
+            r=0
+        return r 
         
     def draw_board(self):
         for i in range(0,3):
