@@ -71,7 +71,8 @@ def get_state_hash_and_winner(env,i=0,j=0):
         env.board[i,j] = v
         if j == 2:
             if i == 2:
-                state = env.get_state()
+                state_set = env.get_state()
+                state = state_set[0]
                 ended = env.game_over(force_recalculate=True)
                 winner = env.winner
                 results.append((state, winner, ended))
@@ -136,8 +137,56 @@ class Env():
                     v=2
                 
                 h+=(3**k)*v
+                k+=1        
+        
+        #take a 90 degree rotation of the board and return states too
+        rot_board = np.rot90(self.board)
+        h1=0
+        k=0
+        for i in range(3):
+            for j in range(3): 
+                if rot_board[i,j]==0:
+                    v=0
+                elif rot_board[i,j]==self.x:
+                    v=1
+                elif rot_board[i,j]==self.o:
+                    v=2
+                
+                h1+=(3**k)*v
                 k+=1
-        return h
+        
+        #180 degree rotation
+        rot_board = np.rot90(self.board,2)
+        h2=0
+        k=0
+        for i in range(3):
+            for j in range(3):     
+                if rot_board[i,j]==0:
+                    v=0
+                elif rot_board[i,j]==self.x:
+                    v=1
+                elif rot_board[i,j]==self.o:
+                    v=2
+                
+                h2+=(3**k)*v
+                k+=1
+
+        #270 degree rotation
+        rot_board = np.rot90(self.board,3)
+        h3=0
+        k=0
+        for i in range(3):
+            for j in range(3):          
+                if rot_board[i,j]==0:
+                    v=0
+                elif rot_board[i,j]==self.x:
+                    v=1
+                elif rot_board[i,j]==self.o:
+                    v=2           
+                h3+=(3**k)*v
+                k+=1
+        
+        return (h,h1,h2,h3)
     
     def game_over(self,force_recalculate=False):
         
@@ -200,11 +249,13 @@ class Agent():
     
     def update(self,env):
         reward = env.reward(self.sym)
-        target = reward
-        for prev in reversed(self.state_history):
-            value = self.V[prev] + self.alpha*(target - self.V[prev])
-            self.V[prev] = value
-            target=value
+        for i in range(4):
+            target = reward
+            for prev in reversed(self.state_history):
+                value = self.V[prev[i]] + self.alpha*(target - self.V[prev[i]])
+                self.V[prev[i]] = value
+                target=value
+
         self.reset_history()
     
     def take_action(self,env):
@@ -229,7 +280,8 @@ class Agent():
                 for j in range(0,3):
                     if env.is_empty(i,j):
                         env.board[i,j] = self.sym
-                        state = env.get_state()
+                        state_set = env.get_state()
+                        state = state_set[0]
                         env.board[i,j] = 0
                         pos2value[(i,j)] = self.V[state]
                         if self.V[state] > best_value:
