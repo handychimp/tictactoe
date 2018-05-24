@@ -288,6 +288,13 @@ class Agent():
                             best_value = self.V[state]
                             best_state = state
                             next_move = (i,j)
+                        elif self.V[state] == best_value:
+                            if np.random.randint(2):
+                                best_value = self.V[state]
+                                best_state = state
+                                next_move  = (i,j)
+
+
             if self.verbose:
                 print('Taking a greedy action')
                 for i in range(0,3):
